@@ -342,9 +342,146 @@
             padding: 0.35rem 0;
         }
 
+        .summary-actions {
+            margin: 0.75rem 0 0;
+        }
+        .summary-actions button {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.55rem 1.1rem;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 500;
+            box-shadow: 0 1px 4px rgba(45, 52, 54, 0.04);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .summary-actions button:hover {
+            background: var(--bg-elevated);
+            box-shadow: var(--shadow);
+        }
+        .session-analysis-panel {
+            margin-top: 1rem;
+            padding: 1rem 1.1rem;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            box-shadow: 0 2px 10px rgba(45, 52, 54, 0.04);
+        }
+        .session-analysis-panel[hidden] { display: none !important; }
+        .session-analysis-panel h3 {
+            margin: 0 0 0.65rem;
+            font-size: 1rem;
+            font-weight: 650;
+            color: var(--text);
+        }
+        .session-analysis-panel .summary-score {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 0.35rem;
+        }
+        .session-analysis-panel .summary-sub {
+            font-size: 0.86rem;
+            color: var(--muted);
+            margin: 0 0 0.85rem;
+        }
+        .summary-by-type-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 1rem 0 0.5rem;
+        }
+        .summary-type-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.86rem;
+            margin: 0 0 0.5rem;
+        }
+        .summary-type-table th,
+        .summary-type-table td {
+            padding: 0.45rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+        .summary-type-table th {
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 0.78rem;
+        }
+        .summary-type-table td.num {
+            text-align: right;
+            white-space: nowrap;
+            font-variant-numeric: tabular-nums;
+        }
+        .summary-type-table tr:last-child td { border-bottom: none; }
+        .summary-type-table .type-name { font-weight: 600; color: var(--text); }
+        .summary-type-table .type-code-cell {
+            font-size: 0.78rem;
+            color: var(--muted);
+            font-weight: 500;
+        }
+        .summary-wrong-title {
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text);
+            margin: 0.75rem 0 0.45rem;
+        }
+        .summary-wrong-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        .summary-wrong-list li {
+            margin-bottom: 0.45rem;
+            padding: 0.55rem 0.75rem;
+            border-radius: var(--radius-md);
+            background: var(--danger-soft);
+            border: 1px solid rgba(229, 152, 155, 0.45);
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #7a3d42;
+        }
+        .summary-wrong-list li .type-code {
+            font-weight: 500;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .summary-none {
+            font-size: 0.88rem;
+            color: var(--ok);
+            font-weight: 600;
+            margin: 0.25rem 0 0;
+        }
+        .summary-revision {
+            margin-top: 1rem;
+            padding: 0.95rem 1.05rem;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(124, 156, 224, 0.38);
+            background: var(--accent-soft);
+        }
+        .summary-revision h4 {
+            margin: 0 0 0.55rem;
+            font-size: 0.92rem;
+            font-weight: 650;
+            color: var(--text);
+        }
+        .summary-revision ul {
+            margin: 0;
+            padding-left: 1.2rem;
+        }
+        .summary-revision li {
+            margin-bottom: 0.4rem;
+            font-size: 0.86rem;
+            line-height: 1.48;
+            color: var(--text);
+        }
+        .summary-revision li:last-child { margin-bottom: 0; }
+
         @media print {
             body { background-color: #fff; padding: 0; }
-            .app-header, .controls, .interaction-area, .btn-group, .hint, .feedback, #progress-line, #summary-panel, .top-nav {
+            .app-header, .controls, .interaction-area, .btn-group, .hint, .feedback, #progress-line, #summary-panel, .top-nav, .summary-actions, #session-analysis-panel {
                 display: none !important;
             }
             .container { padding: 0; max-width: 100%; }
@@ -427,6 +564,10 @@
     </div>
 
     <div id="worksheet"></div>
+    <div class="summary-actions">
+        <button type="button" id="btn-session-summary">學習摘要</button>
+    </div>
+    <div id="session-analysis-panel" class="session-analysis-panel" hidden role="region" aria-live="polite"></div>
     <div id="progress-line" style="display:none;"></div>
     <div id="summary-panel"></div>
 </div>
@@ -460,7 +601,30 @@
             summaryHint: "提示：在列印對話框中選擇「另存為 PDF」即可下載完整題解。",
             alertNoSheet: "請先生成工作紙。",
             types: ["混合所有類型", "類型 1: 計算相對原子質量", "類型 2: 計算百分比豐度", "類型 3: 計算同位素質量"],
-            diffs: ["簡單", "中等", "困難"]
+            diffs: ["簡單", "中等", "困難"],
+            btnSessionSummary: "學習摘要與分析",
+            analysisTitle: "摘要與分析",
+            summaryScoreLabel: "得分（答對／總題數）",
+            summaryFirstTry: "首次即答對",
+            summaryByTypeTitle: "各題型答對率",
+            summaryByTypeColType: "題型",
+            summaryByTypeColFraction: "答對／該題型題數",
+            summaryByTypeColRate: "答對率",
+            summaryByTypeColFirst: "首次即對／該題型題數",
+            summaryWrongTitle: "三次皆錯（已顯示答案）— 需重溫（題號與題型）",
+            summaryNoneWrong: "沒有此類題目 — 尚未出現「三次皆錯」。",
+            summaryIncomplete: "尚未答對（仍可作答）",
+            revTitle: "評語與溫習建議",
+            revBandExcellent: "整體答對率很高。建議持續混合三類題型，熟練加權平均與代數整理。",
+            revBandGood: "整體表現不錯。請參考上表，對答對率較低的題型加做一輪。",
+            revBandFair: "表現參差：請重溫 RAM 公式（豐度以 % 代入時須 ÷100）、聯立方程與小數運算。",
+            revBandLow: "建議先重溫課本「相對原子質量與豐度」一節，再重新產生題目練習。",
+            revWeakOne: "建議優先溫習「{type}」：本次該題型為 {c}/{t}（{pct}%）。",
+            revStrongOne: "強項：「{type}」本次全對（共 {n} 題）。",
+            revThreeStrike: "曾三次答錯而顯示答案的題目：請對照參考答案，檢查是否漏除 100 或代數移項錯誤，再勾選同類題型重練。",
+            revIncomplete: "尚有題目未答對，建議先完成，摘要才完整反映強弱項。",
+            revFirstTryLow: "不少題目需多次嘗試才答對。作答前寫出 RAM 關係式並逐步代入數值。",
+            revBalanced: "錯誤分散在三類題型中，宜均衡練習並針對上表較低答對率者加強。"
         },
         en: {
             title: "Isotopes & Relative Atomic Mass Worksheet",
@@ -488,7 +652,30 @@
             summaryHint: "Tip: In the print dialog, choose Save as PDF to download the full worked solutions.",
             alertNoSheet: "Generate a worksheet first.",
             types: ["Mix of All Types", "Type 1: Calculate RAM", "Type 2: Calculate % Abundance", "Type 3: Calculate Isotopic Mass"],
-            diffs: ["Easy", "Medium", "Hard"]
+            diffs: ["Easy", "Medium", "Hard"],
+            btnSessionSummary: "Session summary & analysis",
+            analysisTitle: "Summary & analysis",
+            summaryScoreLabel: "Score (correct / total)",
+            summaryFirstTry: "Correct on first attempt",
+            summaryByTypeTitle: "Correct rate by question type",
+            summaryByTypeColType: "Type",
+            summaryByTypeColFraction: "Correct / in type",
+            summaryByTypeColRate: "Rate",
+            summaryByTypeColFirst: "First-try / in type",
+            summaryWrongTitle: "Three wrong attempts (answer shown) — review (Q & type)",
+            summaryNoneWrong: "None — no item reached three wrong attempts.",
+            summaryIncomplete: "Still in progress (not yet correct)",
+            revTitle: "Comments & revision suggestions",
+            revBandExcellent: "Very strong accuracy. Keep rotating all three task types so the RAM formula stays automatic.",
+            revBandGood: "Solid work. Use the table to spot weaker types and drill those with another generated set.",
+            revBandFair: "Mixed results: revisit the weighted RAM formula (% to fraction), simultaneous equations, and careful arithmetic.",
+            revBandLow: "Review the textbook section on relative atomic mass and abundances before another full worksheet.",
+            revWeakOne: "Prioritise revision on {type} — this session you scored {c}/{t} ({pct}%) in that category.",
+            revStrongOne: "Strength: every {type} item was correct ({n} questions).",
+            revThreeStrike: "For questions that showed the model answer after three tries: check dividing by 100 and your algebra, then regenerate with those types only.",
+            revIncomplete: "Finish open questions so the next summary reflects your gaps fairly.",
+            revFirstTryLow: "Many items needed several tries. Write the RAM relationship before substituting numbers.",
+            revBalanced: "Errors are spread across types—keep balanced practice and focus on the lowest rates in the table."
         }
     };
 
@@ -505,7 +692,8 @@
         document.getElementById('ui-btn-solutions-pdf').innerText = i18n[l].btnSolutionsPdf;
         document.getElementById('ui-btn-solutions-doc').innerText = i18n[l].btnSolutionsDoc;
         document.getElementById('ui-btn-worksheet-doc').innerText = i18n[l].btnWorksheetDoc;
-        
+        document.getElementById('btn-session-summary').innerText = i18n[l].btnSessionSummary;
+
         const qSelect = document.getElementById('qType');
         for(let i=0; i<qSelect.options.length; i++) qSelect.options[i].text = i18n[l].types[i];
         
@@ -647,6 +835,208 @@
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
+    }
+
+    function T(key, langOpt) {
+        const l = langOpt != null ? langOpt : document.getElementById('lang').value;
+        return (i18n[l] && i18n[l][key]) || i18n.en[key] || key;
+    }
+
+    function qTypeLongLabel(lang, typeNum) {
+        const arr = i18n[lang].types;
+        if (typeNum >= 1 && typeNum <= 3) return arr[typeNum];
+        return String(typeNum);
+    }
+
+    function revFill(template, map) {
+        let out = template;
+        Object.keys(map).forEach((k) => {
+            out = out.split('{' + k + '}').join(map[k]);
+        });
+        return out;
+    }
+
+    function buildRevisionSuggestionsRAM(lang, total, correct, firstTry, failed, incomplete, byType) {
+        const lines = [];
+        const seen = new Set();
+        function addLine(s) {
+            if (!s || seen.has(s)) return;
+            seen.add(s);
+            lines.push(s);
+        }
+        const pctAll = total ? Math.round((100 * correct) / total) : 0;
+        const ftPctAll = total ? Math.round((100 * firstTry) / total) : 0;
+
+        if (pctAll >= 85) addLine(T('revBandExcellent', lang));
+        else if (pctAll >= 65) addLine(T('revBandGood', lang));
+        else if (pctAll >= 40) addLine(T('revBandFair', lang));
+        else addLine(T('revBandLow', lang));
+
+        const typeRows = [];
+        byType.forEach((agg, tid) => {
+            if (!agg || !agg.total) return;
+            const n = Number(tid);
+            const pct = Math.round((100 * agg.correct) / agg.total);
+            typeRows.push({
+                name: qTypeLongLabel(lang, n),
+                total: agg.total,
+                correct: agg.correct,
+                firstTry: agg.firstTry,
+                pct
+            });
+        });
+        typeRows.sort((a, b) => a.pct - b.pct || b.total - a.total);
+
+        let weakPick = typeRows.filter((r) => r.total >= 2 && r.pct < 66);
+        if (!weakPick.length) weakPick = typeRows.filter((r) => r.total >= 1 && r.pct < 50);
+        weakPick = weakPick.slice(0, 2);
+
+        weakPick.forEach((r) => {
+            addLine(
+                revFill(T('revWeakOne', lang), {
+                    type: r.name,
+                    c: String(r.correct),
+                    t: String(r.total),
+                    pct: String(r.pct)
+                })
+            );
+        });
+
+        const strongOnes = typeRows.filter((r) => r.total >= 2 && r.pct === 100);
+        if (strongOnes.length && !weakPick.length) {
+            const r0 = strongOnes[0];
+            addLine(revFill(T('revStrongOne', lang), { type: r0.name, n: String(r0.total) }));
+        }
+
+        if (total >= 4 && pctAll >= 45 && ftPctAll < 40) {
+            addLine(T('revFirstTryLow', lang));
+        }
+        if (failed.length) addLine(T('revThreeStrike', lang));
+        if (incomplete.length) addLine(T('revIncomplete', lang));
+        if (!weakPick.length && typeRows.length >= 2 && pctAll >= 35 && pctAll < 78) {
+            addLine(T('revBalanced', lang));
+        }
+
+        return lines;
+    }
+
+    function renderSessionAnalysis() {
+        const l = document.getElementById('lang').value;
+        const qs = window.questionData;
+        if (!qs || !qs.length || !qs[0]) {
+            alert(T('alertNoSheet'));
+            return;
+        }
+        const total = qs.length;
+        let correct = 0;
+        let firstTry = 0;
+        const failed = [];
+        const incomplete = [];
+        const byType = new Map();
+        qs.forEach((d, idx) => {
+            if (!d) return;
+            const tid = String(d.type);
+            if (!byType.has(tid)) {
+                byType.set(tid, { total: 0, correct: 0, firstTry: 0 });
+            }
+            const agg = byType.get(tid);
+            agg.total += 1;
+            const att = d.attempts || 0;
+            const solved = d.solved;
+            if (solved) {
+                agg.correct += 1;
+                if (att === 0) agg.firstTry += 1;
+            }
+            if (solved) {
+                correct += 1;
+                if (att === 0) firstTry += 1;
+            } else if (att >= 3) {
+                failed.push({ n: idx + 1, q: d });
+            } else {
+                incomplete.push(idx + 1);
+            }
+        });
+
+        let html = '<h3>' + escapeHtml(T('analysisTitle', l)) + '</h3>';
+        html += '<div class="summary-score">' + escapeHtml(T('summaryScoreLabel', l)) + '：' + correct + ' / ' + total + '</div>';
+        html += '<p class="summary-sub">' + escapeHtml(T('summaryFirstTry', l)) + '：' + firstTry + ' / ' + total + '</p>';
+
+        html += '<div class="summary-by-type-title">' + escapeHtml(T('summaryByTypeTitle', l)) + '</div>';
+        html += '<table class="summary-type-table" aria-label="' + escapeHtml(T('summaryByTypeTitle', l)) + '">';
+        html +=
+            '<thead><tr><th>' +
+            escapeHtml(T('summaryByTypeColType', l)) +
+            '</th><th class="num">' +
+            escapeHtml(T('summaryByTypeColFraction', l)) +
+            '</th><th class="num">' +
+            escapeHtml(T('summaryByTypeColRate', l)) +
+            '</th><th class="num">' +
+            escapeHtml(T('summaryByTypeColFirst', l)) +
+            '</th></tr></thead><tbody>';
+        [1, 2, 3].forEach((typeNum) => {
+            const agg = byType.get(String(typeNum));
+            if (!agg || !agg.total) return;
+            const pct = Math.round((100 * agg.correct) / agg.total);
+            const ftPct = Math.round((100 * agg.firstTry) / agg.total);
+            const name = qTypeLongLabel(l, typeNum);
+            html +=
+                '<tr><td><span class="type-name">' +
+                escapeHtml(name) +
+                '</span> <span class="type-code-cell">(type ' +
+                typeNum +
+                ')</span></td><td class="num">' +
+                agg.correct +
+                ' / ' +
+                agg.total +
+                '</td><td class="num">' +
+                pct +
+                '%</td><td class="num">' +
+                agg.firstTry +
+                ' / ' +
+                agg.total +
+                ' (' +
+                ftPct +
+                '%)</td></tr>';
+        });
+        html += '</tbody></table>';
+
+        const revLines = buildRevisionSuggestionsRAM(l, total, correct, firstTry, failed, incomplete, byType);
+        html += '<div class="summary-revision"><h4>' + escapeHtml(T('revTitle', l)) + '</h4><ul>';
+        revLines.forEach((line) => {
+            html += '<li>' + escapeHtml(line) + '</li>';
+        });
+        html += '</ul></div>';
+
+        html += '<div class="summary-wrong-title">' + escapeHtml(T('summaryWrongTitle', l)) + '</div>';
+        if (!failed.length) {
+            html += '<p class="summary-none">' + escapeHtml(T('summaryNoneWrong', l)) + '</p>';
+        } else {
+            html += '<ul class="summary-wrong-list">';
+            failed.forEach((f) => {
+                const label = qTypeLongLabel(l, f.q.type);
+                html +=
+                    '<li>Q' +
+                    f.n +
+                    ' · ' +
+                    escapeHtml(label) +
+                    ' <span class="type-code">(type ' +
+                    f.q.type +
+                    ')</span></li>';
+            });
+            html += '</ul>';
+        }
+        if (incomplete.length) {
+            html +=
+                '<p class="summary-sub" style="margin-top:0.75rem">' +
+                escapeHtml(T('summaryIncomplete', l)) +
+                '：' +
+                incomplete.map((x) => 'Q' + x).join(l === 'zh' ? '、' : ', ') +
+                '</p>';
+        }
+
+        const panel = document.getElementById('session-analysis-panel');
+        panel.hidden = false;
+        panel.innerHTML = html;
     }
 
     function hasWorksheetData() {
@@ -826,6 +1216,9 @@
         window.questionData = [];
         document.getElementById('summary-panel').classList.remove('visible');
         document.getElementById('summary-panel').innerHTML = '';
+        const sap = document.getElementById('session-analysis-panel');
+        sap.hidden = true;
+        sap.innerHTML = '';
         const pl = document.getElementById('progress-line');
         pl.style.display = 'none';
         pl.innerText = '';
@@ -974,7 +1367,10 @@
         updateProgressUI(l);
     }
 
-    document.addEventListener('DOMContentLoaded', updateUI);
+    document.addEventListener('DOMContentLoaded', function () {
+        updateUI();
+        document.getElementById('btn-session-summary').addEventListener('click', renderSessionAnalysis);
+    });
 </script>
 </body>
 </html>
