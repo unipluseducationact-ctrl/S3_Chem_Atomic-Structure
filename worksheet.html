@@ -318,6 +318,30 @@
       color: var(--muted);
       font-weight: 500;
     }
+    .summary-revision {
+      margin-top: 1rem;
+      padding: 0.95rem 1.05rem;
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(124, 156, 224, 0.38);
+      background: var(--accent-soft);
+    }
+    .summary-revision h4 {
+      margin: 0 0 0.55rem;
+      font-size: 0.92rem;
+      font-weight: 650;
+      color: var(--text);
+    }
+    .summary-revision ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .summary-revision li {
+      margin-bottom: 0.4rem;
+      font-size: 0.86rem;
+      line-height: 1.48;
+      color: var(--text);
+    }
+    .summary-revision li:last-child { margin-bottom: 0; }
     .footer { padding: 1rem 1.5rem 2rem; max-width: 1200px; margin: 0 auto; font-size: 0.8rem; color: var(--muted); }
     /* Print sheet: collapsed on screen; expanded in @media print */
     #pdfSheet {
@@ -508,6 +532,17 @@
       summaryByTypeColFraction: "Correct / in type",
       summaryByTypeColRate: "Rate",
       summaryByTypeColFirst: "First-try / in type",
+      revTitle: "Comments & revision suggestions",
+      revBandExcellent: "Overall accuracy is very high this session. Keep mixing question types so recall stays sharp for the exam.",
+      revBandGood: "Good overall result. Use the table above to spot any weaker types and add a short targeted round on those skills.",
+      revBandFair: "Mixed performance: the table shows where accuracy dipped. Re-read your notes for those areas, then regenerate with the same types ticked.",
+      revBandLow: "Several concepts still need consolidation. Review atomic number, mass number, symbol notation, and isotope ideas in your notes before the next full worksheet.",
+      revWeakOne: "Prioritise revision on {type} — this time you scored {c}/{t} ({pct}%) in that category.",
+      revStrongOne: "Strength: you answered every {type} item correctly ({n} questions). Keep a light warm-up on this type between harder sessions.",
+      revTwoStrike: "Questions missed twice: study the model answer wording, then regenerate practice with those question types selected.",
+      revIncomplete: "Finish the questions still in progress so your strengths and gaps are measured fairly next time.",
+      revFirstTryLow: "Many items needed two attempts. Read each stem slowly before answering to turn first-try accuracy around.",
+      revBalanced: "No single type dominated the errors—continue balanced practice across the types you selected.",
     },
     zh: {
       appTitle: "香港中學文憑試 化學 — 原子結構工作紙（純 HTML）",
@@ -541,6 +576,17 @@
       summaryByTypeColFraction: "答對／該題型題數",
       summaryByTypeColRate: "答對率",
       summaryByTypeColFirst: "首次即對／該題型題數",
+      revTitle: "評語與溫習建議",
+      revBandExcellent: "整體答對率很高，表現出色。建議持續混合各題型練習，鞏固應試反應。",
+      revBandGood: "整體表現不錯。可參考上表答對率，對偏低題型加做一輪針對練習。",
+      revBandFair: "表現參差：上表顯示哪些題型較弱。請先重溫相關筆記，再勾選同類題型重新產生題目。",
+      revBandLow: "多個概念仍需鞏固。建議先溫習原子序、質量數、符號表示法與同位素等基本概念，再完成整份工作紙。",
+      revWeakOne: "建議優先溫習「{type}」：本次該題型為 {c}/{t}（{pct}%）。",
+      revStrongOne: "強項：「{type}」本次全對（共 {n} 題）。可在較難練習前用此題型作暖身。",
+      revTwoStrike: "曾「兩次皆錯」的題目：請細讀參考答案的用字與步驟，再在設定中只勾選相關題型重新練習。",
+      revIncomplete: "尚有未答對題目，建議先完成，下次摘要才能更準確反映強弱項。",
+      revFirstTryLow: "不少題目需第二次才答對。作答前宜放慢速度，完整閱讀題幹與選項。",
+      revBalanced: "錯誤分散在不同題型，宜維持均衡練習，並針對上表較低答對率者加強。",
     },
   };
 
@@ -1407,6 +1453,85 @@
     return lang === "zh" ? row.label_zh : row.label_en;
   }
 
+  function revFill(template, map) {
+    let out = template;
+    Object.keys(map).forEach((k) => {
+      out = out.split("{" + k + "}").join(map[k]);
+    });
+    return out;
+  }
+
+  function buildRevisionSuggestions(total, correct, firstTry, failed, incomplete, byType) {
+    const lines = [];
+    const seen = new Set();
+    function addLine(s) {
+      if (!s || seen.has(s)) return;
+      seen.add(s);
+      lines.push(s);
+    }
+
+    const pctAll = total ? Math.round((100 * correct) / total) : 0;
+    const ftPctAll = total ? Math.round((100 * firstTry) / total) : 0;
+
+    if (pctAll >= 85) addLine(t("revBandExcellent"));
+    else if (pctAll >= 65) addLine(t("revBandGood"));
+    else if (pctAll >= 40) addLine(t("revBandFair"));
+    else addLine(t("revBandLow"));
+
+    const typeRows = [];
+    byType.forEach((agg, tid) => {
+      if (!agg || !agg.total) return;
+      const pct = Math.round((100 * agg.correct) / agg.total);
+      typeRows.push({
+        name: qtypeLabel(tid),
+        total: agg.total,
+        correct: agg.correct,
+        pct
+      });
+    });
+    typeRows.sort((a, b) => a.pct - b.pct || b.total - a.total);
+
+    let weakPick = typeRows.filter((r) => r.total >= 2 && r.pct < 66);
+    if (!weakPick.length) weakPick = typeRows.filter((r) => r.total >= 1 && r.pct < 50);
+    weakPick = weakPick.slice(0, 2);
+
+    weakPick.forEach((r) => {
+      addLine(
+        revFill(t("revWeakOne"), {
+          type: r.name,
+          c: String(r.correct),
+          t: String(r.total),
+          pct: String(r.pct)
+        })
+      );
+    });
+
+    const strongOnes = typeRows.filter((r) => r.total >= 2 && r.pct === 100);
+    if (strongOnes.length && !weakPick.length) {
+      const r0 = strongOnes[0];
+      addLine(
+        revFill(t("revStrongOne"), {
+          type: r0.name,
+          n: String(r0.total)
+        })
+      );
+    }
+
+    if (total >= 4 && pctAll >= 45 && ftPctAll < 40) {
+      addLine(t("revFirstTryLow"));
+    }
+
+    if (failed.length) addLine(t("revTwoStrike"));
+
+    if (incomplete.length) addLine(t("revIncomplete"));
+
+    if (!weakPick.length && typeRows.length >= 2 && pctAll >= 35 && pctAll < 78) {
+      addLine(t("revBalanced"));
+    }
+
+    return lines;
+  }
+
   function renderSummary() {
     if (!lastQuestions.length) {
       alert(t("alertNoQuiz"));
@@ -1504,6 +1629,12 @@
         "%)</td></tr>";
     });
     html += "</tbody></table>";
+    const revLines = buildRevisionSuggestions(total, correct, firstTry, failed, incomplete, byType);
+    html += '<div class="summary-revision"><h4>' + escHtml(t("revTitle")) + "</h4><ul>";
+    revLines.forEach((line) => {
+      html += "<li>" + escHtml(line) + "</li>";
+    });
+    html += "</ul></div>";
     html += "<div class=\"summary-wrong-title\">" + escHtml(t("summaryWrongTitle")) + "</div>";
     if (!failed.length) {
       html += "<p class=\"summary-none\">" + escHtml(t("summaryNoneWrong")) + "</p>";
