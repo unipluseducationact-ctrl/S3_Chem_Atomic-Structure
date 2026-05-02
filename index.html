@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Uni+ · S3 化學 — 原子結構與同位素</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card: #ffffff;
+      --text: #2d3436;
+      --muted: #636e72;
+      --border: #e9ecef;
+      --shadow: 0 4px 14px rgba(45, 52, 54, 0.06);
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-pill: 9999px;
+      --accent: #7c9ce0;
+      --accent-soft: #dfe6fb;
+      --accent2: #7bc9a8;
+      --accent2-soft: #d5f4e6;
+      font-family: system-ui, "Segoe UI", "Microsoft JhengHei", 微軟正黑體, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+    .wrap {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 2.5rem;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .logo {
+      display: inline-block;
+      font-weight: 750;
+      font-size: 1.35rem;
+      letter-spacing: -0.03em;
+      padding: 0.45rem 0.95rem;
+      background: var(--card);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 650;
+      margin: 1rem 0 0.35rem;
+      letter-spacing: -0.02em;
+    }
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .grid {
+      display: grid;
+      gap: 1rem;
+    }
+    @media (min-width: 560px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+    }
+    a.card {
+      display: block;
+      text-decoration: none;
+      color: inherit;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.35rem;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s, box-shadow 0.2s;
+    }
+    a.card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(45, 52, 54, 0.1);
+    }
+    a.card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.05rem;
+      font-weight: 650;
+    }
+    a.card p {
+      margin: 0;
+      font-size: 0.88rem;
+      color: var(--muted);
+    }
+    a.card.ch5-1 { border-top: 4px solid var(--accent); }
+    a.card.ch5-2 { border-top: 4px solid var(--accent2); }
+    .en {
+      display: block;
+      margin-top: 0.35rem;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    footer {
+      margin-top: 2rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    footer a {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <span class="logo">Uni+</span>
+      <h1>S3 化學 · 原子結構與同位素</h1>
+      <p class="sub">HKDSE Chemistry — 互動工作紙（GitHub Pages）</p>
+    </header>
+    <div class="grid">
+      <a class="card ch5-1" href="worksheet.html">
+        <h2>第五章（一）原子結構</h2>
+        <p>電子排布、週期律等練習。</p>
+        <span class="en">Ch 5.1 — Atomic structure worksheet</span>
+      </a>
+      <a class="card ch5-2" href="RAM_calculation.html">
+        <h2>第五章（二）同位素與 RAM</h2>
+        <p>相對原子質量、豐度與同位素質量題組。</p>
+        <span class="en">Ch 5.2 — Isotopes &amp; relative atomic mass</span>
+      </a>
+    </div>
+    <footer>
+      <a href="https://github.com/unipluseducationact-ctrl/S3_Chem_Atomic_Structure_and_Isotope">在 GitHub 上查看此專案</a>
+    </footer>
+  </div>
+</body>
+</html>
