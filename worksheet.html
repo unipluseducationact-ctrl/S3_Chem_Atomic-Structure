@@ -207,6 +207,81 @@
     }
     .options label:hover { color: var(--text); }
     .q-block .primary { margin-top: 0.65rem; }
+    .summary-actions { margin-top: 0.75rem; }
+    .summary-actions button {
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 0.55rem 1.1rem;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+      font-size: 0.86rem;
+      font-weight: 500;
+      box-shadow: 0 1px 4px rgba(45, 52, 54, 0.04);
+      transition: background 0.2s, box-shadow 0.2s;
+    }
+    .summary-actions button:hover {
+      background: var(--bg-elevated);
+      box-shadow: var(--shadow);
+    }
+    .summary-panel {
+      margin-top: 1rem;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+      background: var(--bg-elevated);
+      box-shadow: 0 2px 10px rgba(45, 52, 54, 0.04);
+    }
+    .summary-panel[hidden] { display: none !important; }
+    .summary-panel h3 {
+      margin: 0 0 0.65rem;
+      font-size: 1rem;
+      font-weight: 650;
+      color: var(--text);
+    }
+    .summary-score {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.35rem;
+    }
+    .summary-sub {
+      font-size: 0.86rem;
+      color: var(--muted);
+      margin: 0 0 0.85rem;
+    }
+    .summary-wrong-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text);
+      margin: 0.75rem 0 0.45rem;
+    }
+    .summary-wrong-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .summary-wrong-list li {
+      margin-bottom: 0.45rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius-md);
+      background: var(--danger-soft);
+      border: 1px solid rgba(229, 152, 155, 0.45);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #7a3d42;
+    }
+    .summary-wrong-list li .type-code {
+      font-weight: 500;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .summary-none {
+      font-size: 0.88rem;
+      color: var(--ok);
+      font-weight: 600;
+      margin: 0.25rem 0 0;
+    }
     .footer { padding: 1rem 1.5rem 2rem; max-width: 1200px; margin: 0 auto; font-size: 0.8rem; color: var(--muted); }
     /* Print sheet: collapsed on screen; expanded in @media print */
     #pdfSheet {
@@ -308,6 +383,10 @@
     <section class="card">
       <h2 id="hPractice">On-screen practice</h2>
       <p class="hint" id="txtPracticeHint">First wrong attempt: hint only. Second wrong: model answer.</p>
+      <div class="summary-actions">
+        <button type="button" id="btnSummary">Session summary</button>
+      </div>
+      <div id="summaryPanel" class="summary-panel" hidden role="region" aria-live="polite"></div>
       <div id="quizArea" class="quiz-empty"></div>
     </section>
   </main>
@@ -380,6 +459,14 @@
       footerNote: "Topic: atomic structure, Z, A, symbols — HKDSE-style practice.",
       quizCheck: "Check answer",
       empty: "Generate questions first.",
+      btnSummary: "Session summary",
+      summaryTitle: "Summary",
+      summaryScoreLabel: "Score (correct / total)",
+      summaryFirstTry: "Correct on first attempt",
+      summaryWrongTitle: "Wrong twice — review these (Q no. & type)",
+      summaryNoneWrong: "None — no questions failed after two attempts.",
+      summaryIncomplete: "Still in progress (not yet correct)",
+      alertNoQuiz: "Generate questions first.",
     },
     zh: {
       appTitle: "香港中學文憑試 化學 — 原子結構工作紙（純 HTML）",
@@ -400,6 +487,14 @@
       footerNote: "課題：原子結構、原子序、質量數、符號等。",
       quizCheck: "檢查答案",
       empty: "請先按「產生題目」。",
+      btnSummary: "學習摘要",
+      summaryTitle: "摘要",
+      summaryScoreLabel: "得分（答對／總題數）",
+      summaryFirstTry: "首次即答對",
+      summaryWrongTitle: "兩次皆錯 — 需重溫（題號與題型）",
+      summaryNoneWrong: "沒有此類題目 — 尚未出現「兩次皆錯」。",
+      summaryIncomplete: "尚未答對（進行中）",
+      alertNoQuiz: "請先產生題目。",
     },
   };
 
@@ -1202,11 +1297,14 @@
     document.getElementById("btnPrint").textContent = t("btnPrint");
     document.getElementById("hPractice").textContent = t("hPractice");
     document.getElementById("txtPracticeHint").textContent = t("txtPracticeHint");
+    document.getElementById("btnSummary").textContent = t("btnSummary");
     document.getElementById("footerNote").textContent = t("footerNote");
     document.getElementById("btnLangEn").classList.toggle("active", lang === "en");
     document.getElementById("btnLangZh").classList.toggle("active", lang === "zh");
     initMeta();
     renderQuiz();
+    const sp = document.getElementById("summaryPanel");
+    if (!sp.hidden && lastQuestions.length) renderSummary();
   }
 
   function initMeta() {
@@ -1251,7 +1349,72 @@
     lastQuestions = await generateQuestions(count, types, difficulty, seed);
     attemptMap.clear();
     lastQuestions.forEach((q) => attemptMap.set(q.id, { wrong: 0, solved: false }));
+    const sp = document.getElementById("summaryPanel");
+    sp.hidden = true;
+    sp.innerHTML = "";
     renderQuiz();
+  }
+
+  function qtypeLabel(typeId) {
+    const row = QUESTION_TYPES.find((x) => x.id === typeId);
+    if (!row) return typeId;
+    return lang === "zh" ? row.label_zh : row.label_en;
+  }
+
+  function renderSummary() {
+    if (!lastQuestions.length) {
+      alert(t("alertNoQuiz"));
+      return;
+    }
+    const total = lastQuestions.length;
+    let correct = 0;
+    let firstTry = 0;
+    const failed = [];
+    const incomplete = [];
+    lastQuestions.forEach((q, idx) => {
+      const st = attemptMap.get(q.id) || { wrong: 0, solved: false };
+      const n = idx + 1;
+      if (st.solved && st.wrong < 2) {
+        correct += 1;
+        if (st.wrong === 0) firstTry += 1;
+      } else if (st.solved && st.wrong >= 2) {
+        failed.push({ n, q });
+      } else {
+        incomplete.push(n);
+      }
+    });
+    const panel = document.getElementById("summaryPanel");
+    panel.hidden = false;
+    let html = "<h3>" + escHtml(t("summaryTitle")) + "</h3>";
+    html += "<div class=\"summary-score\">" + escHtml(t("summaryScoreLabel")) + "：" + correct + " / " + total + "</div>";
+    html += "<p class=\"summary-sub\">" + escHtml(t("summaryFirstTry")) + "：" + firstTry + " / " + total + "</p>";
+    html += "<div class=\"summary-wrong-title\">" + escHtml(t("summaryWrongTitle")) + "</div>";
+    if (!failed.length) {
+      html += "<p class=\"summary-none\">" + escHtml(t("summaryNoneWrong")) + "</p>";
+    } else {
+      html += "<ul class=\"summary-wrong-list\">";
+      failed.forEach(({ n, q }) => {
+        const label = qtypeLabel(q.qtype);
+        html +=
+          "<li>Q" +
+          n +
+          " · " +
+          escHtml(label) +
+          ' <span class="type-code">(' +
+          escHtml(q.qtype) +
+          ")</span></li>";
+      });
+      html += "</ul>";
+    }
+    if (incomplete.length) {
+      html +=
+        '<p class="summary-sub" style="margin-top:0.75rem">' +
+        escHtml(t("summaryIncomplete")) +
+        "：" +
+        incomplete.map((x) => "Q" + x).join(lang === "zh" ? "、" : ", ") +
+        "</p>";
+    }
+    panel.innerHTML = html;
   }
 
   function normAns(s) {
@@ -1480,6 +1643,7 @@
     applyLang();
   });
   document.getElementById("btnGenerate").addEventListener("click", generate);
+  document.getElementById("btnSummary").addEventListener("click", renderSummary);
   document.getElementById("btnDocQ").addEventListener("click", () => downloadWord(false));
   document.getElementById("btnDocA").addEventListener("click", () => downloadWord(true));
   document.getElementById("btnPrint").addEventListener("click", () => {
