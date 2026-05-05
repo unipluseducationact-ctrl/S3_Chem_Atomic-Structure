@@ -403,6 +403,12 @@
         padding: 0 !important;
         pointer-events: auto !important;
       }
+
+      /* Keep each question together on one page (Print → Save as PDF) */
+      #pdfSheet .pdf-q {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
     }
   </style>
 </head>
